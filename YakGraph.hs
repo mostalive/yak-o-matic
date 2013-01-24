@@ -8,6 +8,7 @@ import Data.Maybe
 import Data.Text.Lazy(unpack)
 import Data.Sequence(Seq)
 import Data.Foldable(toList)
+import Control.Arrow
 
 fromGraphId (Str s) = unpack s
 
@@ -32,7 +33,7 @@ listOfPairsToMapOfKeysWithListOfValues pairs = groupStuff pairs M.empty
     addToList n (Just ns) = Just $ n:ns
 
 countOfNodesPerCluster :: DotGraph String -> [(String, Int)]
-countOfNodesPerCluster = map (\ (c,l) -> (c,length l)) . M.toList  .listOfNodesPerCluster
+countOfNodesPerCluster = map (id *** length) . M.toList  .listOfNodesPerCluster
 
 
 listOfNodesPerCluster :: DotGraph String -> M.Map String [String]
