@@ -32,7 +32,7 @@ listOfPairsToMapOfKeysWithListOfValues pairs = groupStuff pairs M.empty
     addToList n (Just ns) = Just $ n:ns
 
 countOfNodesPerCluster :: DotGraph String -> [(String, Int)]
-countOfNodesPerCluster = map (id *** Length) . M.toList  .listOfNodesPerCluster
+countOfNodesPerCluster = map (id *** length) . M.toList  .listOfNodesPerCluster
 
 listOfNodesPerCluster :: DotGraph String -> M.Map String [String]
 listOfNodesPerCluster =
