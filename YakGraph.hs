@@ -23,7 +23,6 @@ extractClusterName seq = case toList seq of
                           []                  -> "inbox"
                           (Just (Str name)):_ -> unpack name
 
-
 listOfPairsToMapOfKeysWithListOfValues ::  [(Seq(Maybe GraphID),String)] -> M.Map String [String]
 listOfPairsToMapOfKeysWithListOfValues pairs = groupStuff pairs M.empty
   where
@@ -33,12 +32,10 @@ listOfPairsToMapOfKeysWithListOfValues pairs = groupStuff pairs M.empty
     addToList n (Just ns) = Just $ n:ns
 
 countOfNodesPerCluster :: DotGraph String -> [(String, Int)]
-countOfNodesPerCluster = map (id *** length) . M.toList  .listOfNodesPerCluster
-
+countOfNodesPerCluster = map (id *** Length) . M.toList  .listOfNodesPerCluster
 
 listOfNodesPerCluster :: DotGraph String -> M.Map String [String]
 listOfNodesPerCluster =
  listOfPairsToMapOfKeysWithListOfValues . concatMap keyByCluster .groupBy sameCluster. M.toAscList . nodeInformation False
  where
   sameCluster (n,(p,_)) (n',(p',_)) = p == p' 
-
