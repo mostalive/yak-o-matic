@@ -1,3 +1,4 @@
+module YakGraph(listOfClusterNames, listOfNodesPerCluster) where
 import Data.GraphViz.Types
 import Data.GraphViz.Types.Graph
 import Data.GraphViz.Commands.IO
@@ -28,7 +29,6 @@ extractClusterName seq = case toList seq of
 listOfPairsToMapOfKeysWithListOfValues ::  [(Seq(Maybe GraphID),String)] -> Map String [String]
 listOfPairsToMapOfKeysWithListOfValues pairs = groupStuff pairs empty
   where
-    groupStuff :: [(Seq(Maybe GraphID),String)] -> Map String [String] -> Map String [String] 
     groupStuff [] m = m
     groupStuff ((c,n):rest) m =  alter (addToList n) (extractClusterName c) (groupStuff rest m)
     addToList  n Nothing = Just [n]
