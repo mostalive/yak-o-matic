@@ -13,7 +13,7 @@ import Control.Arrow
 fromGraphId (Str s) = unpack s
 
 listOfClusterNames :: DotGraph String -> [String]
-listOfClusterNames = map fromGraphId.map fromJust.M.keys. snd. graphStructureInformation
+listOfClusterNames = map (fromGraphId.fromJust) . M.keys . snd . graphStructureInformation
 
 keyByCluster ((n,(p,_)):ns) = (p,n) : keyByCluster ns
 keyByCluster []  =  []
@@ -32,10 +32,10 @@ listOfPairsToMapOfKeysWithListOfValues pairs = groupStuff pairs M.empty
     addToList n (Just ns) = Just $ n:ns
 
 countOfNodesPerCluster :: DotGraph String -> [(String, Int)]
-countOfNodesPerCluster = map (id *** length) . M.toList  .listOfNodesPerCluster
+countOfNodesPerCluster = map (id *** length) . M.toList . listOfNodesPerCluster
 
 listOfNodesPerCluster :: DotGraph String -> M.Map String [String]
 listOfNodesPerCluster =
- listOfPairsToMapOfKeysWithListOfValues . concatMap keyByCluster .groupBy sameCluster. M.toAscList . nodeInformation False
+ listOfPairsToMapOfKeysWithListOfValues . concatMap keyByCluster . groupBy sameCluster . M.toAscList . nodeInformation False
  where
   sameCluster (n,(p,_)) (n',(p',_)) = p == p' 
