@@ -12,7 +12,7 @@ Build-Depends:        base
 Cabal-version:        >= 1.2
 
 Executable yak
-  build-depends:      graphviz
+  build-depends:      base, containers, text, graphviz
   hs-source-dirs:     .
   main-is:            yak.hs
 
