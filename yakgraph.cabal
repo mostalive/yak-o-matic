@@ -1,0 +1,24 @@
+Name:                 yakgraph
+Version:              0.1
+Build-type:           Simple
+Synopsis:             A utility to manage graph of Yak-shaving tasks within a Git repository
+License:              LGPL
+License-file:         LICENSE
+Author:               Willem van den Ende
+                      Arnaud Bailly
+Maintainer:           Willem van den Ende 
+                      Arnaud Bailly <arnaud.oqube@gmail.com>
+Build-Depends:        base
+Cabal-version:        >= 1.2
+
+Executable yak
+  build-depends:      graphviz
+  hs-source-dirs:     .
+  main-is:            yak.hs
+
+Test-Suite yakgraph-test
+    type:          exitcode-stdio-1.0
+    main-is:       yakgraph-test.hs
+    build-depends: base
+                   , HUnit >= 1.2.5.1
+

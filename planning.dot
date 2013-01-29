@@ -1,0 +1,66 @@
+digraph submitflow {
+
+  subgraph cluster_done {
+    label = "done"
+    CreateContainerInChef
+    ImageWithChefPackage
+    AccountForRob [label="account for rob needs refactoring"]
+    AllowTrafficFromContainers
+    FixIpAdress
+    ConsoleScripting
+    SshKeys
+    DisposableDevelopmentContainers
+    ChefOnContainer
+    SshPortMapping
+    ChefSolo
+    JsonConfig
+  }
+  
+ subgraph cluster_inprogress {
+    label = "in progress"
+    RubyDevContainer
+  }
+
+  subgraph cluster_processacceleration {
+    label = "process acceleration"
+    MoshShell
+    RspecChef
+    JanusForRoot
+    JanusForUsers
+  }
+
+  subgraph cluster_technicaldebt {
+    label = "technical debt"
+    SshPasswordAuthenticationNoInChef [label="ubuntu containers have ssh passwords enabled. should be disabled"]
+    SshPasswordAuthenticationNoInChef
+    JanusInChef
+    RvmInChef
+    BundleInstallInChef
+    MyContainersChefDoesNotWaithForSsh
+    UfwStillInPhoenixRecipe
+    KnifeConfigurationFile 
+    ShoreWallInChef
+  }
+
+  AllowTrafficFromContainers -> RunChefOnAllContainers [label="yak, traffic should already flow from containers"]
+  FixIpAdress -> RunChefOnAllContainers
+  ConsoleScripting -> RunChefOnAllContainers [label="execute task via console (hard?) or ssh"]
+  ImageWithChefPackage -> ChefOnContainer
+  CreateContainerInChef -> ChefOnContainer
+  ChefSolo -> RunChefOnAllContainers
+  PushGitRepo -> RunChefOnAllContainers
+  JsonConfig -> RunChefOnAllContainers
+  RunChefOnAllContainers -> ChefOnContainer
+  AccountForRob -> ChefOnContainer
+  DisposableDevelopmentContainers -> RubyDevContainer
+  SshPortMapping -> RubyDevContainer
+  MonitContainer -> AutoStartContainers
+  AutoStartContainers -> RubyDevContainer
+  SshKeys -> RubyDevContainer
+  MailSmartHost -> RubyProdContainer
+  ChefOnContainer -> ApacheContainer [label="container for legacy apache sites"]
+  ChefOnContainer -> DisposableDevelopmentContainers
+  ChefOnContainer -> MonitContainer
+  MailSmartHost   -> MonitInContainer
+  ChefOnContainer -> MailSmartHost
+}
