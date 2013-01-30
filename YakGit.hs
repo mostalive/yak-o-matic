@@ -31,6 +31,10 @@ listCommitsFromLogOutput = map fromJust . filter isJust . map (parseOneLineLog) 
 -- We only test for the hashes       
 -- >>> gitCommitsForFile "test-repo" "planning.dot" >>= return . map gitHash
 -- ["f826a39","8aff6d5","2d251b4"]
+-- >>> gitCommitsForFile "test-repo" "non-existing-file" >>= return . map gitHash    
+-- []
+-- >>> gitCommitsForFile "no-repo" "planning.dot" >>= return . map gitHash    
+-- *** Exception: git: createProcess: invalid argument (Invalid argument)
 gitCommitsForFile :: FilePath           -- ^The path to the git repository containing file 
                      -> FilePath        -- ^The path to the file we want to look at, relative to the git repo
                      -> IO [GitCommit]  -- ^A list of @GitCommit@ objects
