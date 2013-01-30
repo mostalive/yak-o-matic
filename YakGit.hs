@@ -52,6 +52,8 @@ gitCommitsForFile gitrepo filename =
 --
 -- >>> gitContentOfFileAtCommit "test-repo" "planning.dot" "8aff6d5" >>= return . head. drop 21 . lines . fromJust
 -- "    RvmInChef"
+-- >>> gitContentOfFileAtCommit "test-repo" "no-File" "8aff6d5"
+-- Nothing
 gitContentOfFileAtCommit :: FilePath             -- ^The path to the git repository containing file 
                             -> FilePath          -- ^The path to the file we want to look at, relative to the git repo
                             -> GitHash           -- ^The commit at which file content is requested
