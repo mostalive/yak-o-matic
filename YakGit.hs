@@ -8,9 +8,12 @@ import Data.Maybe(fromJust, isJust)
 
 parse' s p = [x | (x,t) <- (P.readP_to_S p s) ]
 
+type GitHash = String
+
+
 -- | A single git commit.
 data GitCommit = GitCommit { 
-  gitHash       :: String,  -- ^Git unique hash identifier for the commit
+  gitHash       :: GitHash,  -- ^Git unique hash identifier for the commit
   gitLogMessage :: String   -- ^Log message
   } deriving (Eq, Show)
 
@@ -43,3 +46,18 @@ gitCommitsForFile gitrepo filename =
       log    = gitExec "log" ["--oneline", filename] []
   in runGit config log >>= 
      return . either (return []) (listCommitsFromLogOutput)
+
+
+-- |Retrieve the content of a file at specified commit
+--
+-- >>> gitContentOfFileAtCommit "test-repo" "planning.dot" "8aff6d5" >>= return . head. drop 21 . lines . fromJust
+-- "    RvmInChef"
+gitContentOfFileAtCommit :: FilePath             -- ^The path to the git repository containing file 
+                            -> FilePath          -- ^The path to the file we want to look at, relative to the git repo
+                            -> GitHash           -- ^The commit at which file content is requested
+                            -> IO (Maybe String) -- ^Content of file if found, 
+gitContentOfFileAtCommit gitrepo filename h = 
+  let config  = makeConfig gitrepo Nothing
+      content = gitExec "show" [h ++ ":" ++ filename] []
+  in runGit config content >>=
+     return . either (const Nothing) Just
