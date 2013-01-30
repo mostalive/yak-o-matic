@@ -32,10 +32,13 @@ listCommitsFromLogOutput = map fromJust . filter isJust . map (parseOneLineLog) 
 -- | List all commits for a given file.
 --
 -- We only test for the hashes       
+--
 -- >>> gitCommitsForFile "test-repo" "planning.dot" >>= return . map gitHash
 -- ["f826a39","8aff6d5","2d251b4"]
+--
 -- >>> gitCommitsForFile "test-repo" "non-existing-file" >>= return . map gitHash    
 -- []
+--
 -- >>> gitCommitsForFile "no-repo" "planning.dot" >>= return . map gitHash    
 -- *** Exception: git: createProcess: invalid argument (Invalid argument)
 gitCommitsForFile :: FilePath           -- ^The path to the git repository containing file 
@@ -52,10 +55,13 @@ gitCommitsForFile gitrepo filename =
 --
 -- >>> gitContentOfFileAtCommit "test-repo" "planning.dot" "8aff6d5" >>= return . head. drop 21 . lines . fromJust
 -- "    RvmInChef"
+--
 -- >>> gitContentOfFileAtCommit "test-repo" "no-File" "8aff6d5"
 -- Nothing
+--
 -- >>> gitContentOfFileAtCommit "test-repo" "planning.dot" "1234566"
 -- Nothing
+--
 -- >>> gitContentOfFileAtCommit "no-repo" "planning.dot" "8aff6d5"
 -- *** Exception: git: createProcess: invalid argument (Invalid argument)
 gitContentOfFileAtCommit :: FilePath             -- ^The path to the git repository containing file 
