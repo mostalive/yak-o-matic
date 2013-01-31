@@ -1,6 +1,5 @@
 import System.Environment
 import Data.GraphViz.Types.Graph
-import Data.GraphViz.Commands.IO
 import Data.GraphViz.Parsing
 import Data.Text.Lazy(pack)
 import Data.Maybe(fromJust)
@@ -24,6 +23,7 @@ outputCfdData gitrepo filename = do
   return $ map (show . countOfNodesPerCluster . iograph . fromJust) contents
 
   
+main :: IO ()
 main = do
     [repoGit,pathToFile] <- getArgs
     cfdData <- outputCfdData repoGit pathToFile

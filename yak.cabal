@@ -1,4 +1,4 @@
-Name:                 yakgraph
+Name:                 yak-o-matic
 Version:              0.1
 Build-type:           Simple
 Synopsis:             A utility to manage graph of Yak-shaving tasks within a Git repository
@@ -11,14 +11,15 @@ Maintainer:           Willem van den Ende
 Build-Depends:        base
 Cabal-version:        >= 1.2
 
-Executable yak
+Executable yak-o-matic
   build-depends:      base, containers, text, libgit, graphviz
   hs-source-dirs:     .
   main-is:            yak.hs
+  ghc-options:        -Wall
 
-Test-Suite yakgraph-test
+Test-Suite yak-o-matic-test
     type:          exitcode-stdio-1.0
-    main-is:       yakgraph-test.hs
+    main-is:       yak-test.hs
     build-depends: base
-                   , HUnit >= 1.2.5.1
+                   , HUnit, doctest
 
