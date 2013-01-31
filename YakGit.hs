@@ -1,12 +1,13 @@
+{-# LANGUAGE PatternGuards #-}
 module YakGit where
 
-import Text.ParserCombinators.ReadP((+++))
 import qualified Text.ParserCombinators.ReadP as P
-import Data.Char(isSpace,isDigit,isHexDigit)
+import Data.Char(isHexDigit)
 import Lib.Git.Type
 import Data.Maybe(fromJust, isJust)
 
-parse' s p = [x | (x,t) <- (P.readP_to_S p s) ]
+parse' :: String -> P.ReadP a -> [a]
+parse' s p = [x | (x,_) <- (P.readP_to_S p s) ]
 
 type GitHash = String
 
@@ -45,9 +46,9 @@ gitCommitsForFile :: FilePath           -- ^The path to the git repository conta
                      -> FilePath        -- ^The path to the file we want to look at, relative to the git repo
                      -> IO [GitCommit]  -- ^A list of @GitCommit@ objects
 gitCommitsForFile gitrepo filename = 
-  let config = makeConfig gitrepo Nothing
-      log    = gitExec "log" ["--oneline", filename] []
-  in runGit config log >>= 
+  let config     = makeConfig gitrepo Nothing
+      logOneLine = gitExec "log" ["--oneline", filename] []
+  in runGit config logOneLine >>= 
      return . either (return []) (listCommitsFromLogOutput)
 
 
