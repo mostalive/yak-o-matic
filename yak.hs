@@ -14,7 +14,7 @@ iograph  = parseIt'.pack
 -- |Output cfddata for a given file in a given repo
 --
 -- >>> outputCfdData "test-repo" "planning.dot" >>= return . head
--- "foo"
+-- "[(\"done\",13),(\"inbox\",9),(\"inprogress\",2),(\"processacceleration\",4),(\"technicaldebt\",6)]"
 outputCfdData :: FilePath        -- ^Path to git repo
                  -> FilePath     -- ^File (expect graphviz format) to extract data from
                  -> IO [String]  -- ^CFD Data extracted from graph file's content
