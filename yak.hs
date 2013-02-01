@@ -17,10 +17,10 @@ iograph  = parseIt'.pack
 outputCfdData :: FilePath        -- ^Path to git repo
                  -> FilePath     -- ^File (expect graphviz format) to extract data from
                  -> IO [String]  -- ^CFD Data extracted from graph file's content
-outputCfdData gitrepo filename = do
-  commits <- gitCommitsForFile gitrepo filename
-  contents <- mapM (gitContentOfFileAtCommit gitrepo filename . gitHash) commits 
-  return $ map (show . countOfNodesPerCluster . iograph . fromJust) contents
+outputCfdData gitrepo filename =
+  gitCommitsForFile gitrepo filename >>=
+  mapM (gitContentOfFileAtCommit gitrepo filename . gitHash) >>=
+  return . map (show . countOfNodesPerCluster . iograph . fromJust)
 
   
 main :: IO ()
