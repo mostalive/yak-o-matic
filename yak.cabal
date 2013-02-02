@@ -12,7 +12,7 @@ Build-Depends:        base
 Cabal-version:        >= 1.2
 
 Executable yak-o-matic
-  build-depends:      base, containers, text, libgit, graphviz
+  build-depends:      base, containers, text == 0.11.2.3, libgit, graphviz
   hs-source-dirs:     .
   main-is:            yak.hs
   ghc-options:        -Wall
@@ -20,6 +20,5 @@ Executable yak-o-matic
 Test-Suite yak-o-matic-test
     type:          exitcode-stdio-1.0
     main-is:       yak-test.hs
-    build-depends: base
-                   , HUnit, doctest
+    build-depends: base, doctest, libgit
 
