@@ -1,3 +1,6 @@
+This is a work in progress, not yet fit for use or participation (should
+change in a week or two)
+
 yak-cfd --start GUID --end GUID 
 iterates over a number of git commits, optionally limited by a commit
 range, collecting the number of vertices in a subgraph

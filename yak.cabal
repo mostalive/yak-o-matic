@@ -2,11 +2,11 @@ Name:                 yak-o-matic
 Version:              0.1
 Build-type:           Simple
 Synopsis:             A utility to manage graph of Yak-shaving tasks within a Git repository
-License:              LGPL
+License:              BSD3
 License-file:         LICENSE
 Author:               Willem van den Ende
                       Arnaud Bailly
-Maintainer:           Willem van den Ende 
+Maintainer:           Willem van den Ende <willem@qwan.eu>
                       Arnaud Bailly <arnaud.oqube@gmail.com>
 Build-Depends:        base
 Cabal-version:        >= 1.2
