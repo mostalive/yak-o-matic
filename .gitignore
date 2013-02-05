@@ -6,3 +6,4 @@ dist
 patches*
 cabal-dev
 test-repo
+outgoing_patches
