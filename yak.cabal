@@ -12,7 +12,7 @@ Build-Depends:        base
 Cabal-version:        >= 1.2
 
 Executable yak-o-matic
-  build-depends:      base, containers, text == 0.11.2.3, libgit, graphviz
+  build-depends:      base, containers, text == 0.11.2.3, libgit, graphviz, time >= 1.4, old-locale >= 1.0
   hs-source-dirs:     .
   main-is:            yak.hs
   ghc-options:        -Wall

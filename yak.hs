@@ -1,6 +1,6 @@
 import System.Environment
 import Data.Maybe(fromJust)
-import Control.Monad
+import Data.Time(UTCTime)
 
 import YakGraph
 import YakGit
@@ -37,13 +37,14 @@ type Cfd = [(String, Int)]
 
 data YakStep = YakStep {
   commitId :: GitHash,        -- ^Identifier for this step
+  commitDate :: UTCTime,      -- ^Date of commit
   cfd      :: Cfd             -- ^Count of number of tasks per cluster
   } deriving (Eq, Show, Read)
 
 -- |Output cfddata for a given file in a given repo
 --
 -- >>> outputCfdData (YakOptions False (Just "test-repo") (Just "planning.dot")) >>= return . head
--- YakStep {commitId = "f826a39", commitDate = "", cfd = [("done",13),("inbox",9),("inprogress",2),("processacceleration",4),("technicaldebt",6)]}
+-- YakStep {commitId = "f826a39", commitDate = 2013-01-30 18:36:07 UTC, cfd = [("done",13),("inbox",9),("inprogress",2),("processacceleration",4),("technicaldebt",6)]}
 --
 -- >>> outputCfdData (YakOptions True (Just "test-repo") Nothing)
 -- *** Exception: Invalid command-line arguments
@@ -58,7 +59,7 @@ buildCfdForCommit :: Bool ->  FilePath -> FilePath -> GitCommit -> IO YakStep
 buildCfdForCommit debug gitrepo filename commit =                      
   (gitContentOfFileAtCommit gitrepo filename . gitHash) commit >>=
   maybeDebug debug >>=
-  return . YakStep (gitHash commit) . countOfNodesPerCluster . parseGraph . fromJust
+  return . YakStep (gitHash commit) (gitDate commit) . countOfNodesPerCluster . parseGraph . fromJust
   
 maybeDebug :: (Show a) => Bool -> a -> IO a
 maybeDebug True s  = putStrLn (show s) >> return s
