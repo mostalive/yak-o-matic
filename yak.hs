@@ -1,14 +1,8 @@
 import System.Environment
-import Data.GraphViz.Types.Graph
-import Data.GraphViz.Parsing
-import Data.Text.Lazy(pack)
 import Data.Maybe(fromJust)
 
 import YakGraph
 import YakGit
-
-iograph :: String -> DotGraph String
-iograph  = parseIt'.pack
 
 data YakOptions = YakOptions {
   debugParsing         :: Bool,            -- ^Trace Graphviz parser input & output
@@ -51,7 +45,7 @@ outputCfdData (YakOptions debug (Just gitrepo) (Just filename)) =
   gitCommitsForFile gitrepo filename >>=
   mapM (gitContentOfFileAtCommit gitrepo filename . gitHash) >>=
   maybeDebug debug >>=
-  return . map (show . countOfNodesPerCluster . iograph . fromJust)
+  return . map (show . countOfNodesPerCluster . parseGraph . fromJust)
 outputCfdData _ = error "Invalid command-line arguments"
 
   

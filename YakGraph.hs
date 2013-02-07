@@ -1,13 +1,17 @@
-module YakGraph(listOfClusterNames, listOfNodesPerCluster, countOfNodesPerCluster) where
+module YakGraph(parseGraph, listOfClusterNames, listOfNodesPerCluster, countOfNodesPerCluster) where
 import Data.GraphViz.Types
 import Data.GraphViz.Types.Graph
+import Data.GraphViz.Parsing
 import qualified Data.Map as M
 import Data.List(groupBy)
 import Data.Maybe
-import Data.Text.Lazy(unpack)
+import Data.Text.Lazy(pack, unpack)
 import Data.Sequence(Seq)
 import Data.Foldable(toList)
 import Control.Arrow
+
+parseGraph :: String -> DotGraph String
+parseGraph  = parseIt'.pack
 
 fromGraphId  :: GraphID -> String
 fromGraphId (Str s) = unpack s
