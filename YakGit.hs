@@ -2,19 +2,23 @@
 module YakGit where
 
 import qualified Text.ParserCombinators.ReadP as P
-import Data.Char(isHexDigit)
+import Data.Char(isHexDigit,isSpace)
 import Lib.Git.Type
 import Data.Maybe(fromJust, isJust)
+import System.Locale(defaultTimeLocale)
+import Data.Time(UTCTime,readTime)
 
 parse' :: String -> P.ReadP a -> [a]
 parse' s p = [x | (x,_) <- (P.readP_to_S p s) ]
 
 type GitHash = String
 
+iso8601 = "%Y-%m-%d %T %z"
 
 -- | A single git commit.
 data GitCommit = GitCommit { 
   gitHash       :: GitHash,  -- ^Git unique hash identifier for the commit
+  gitDate       :: UTCTime,
   gitLogMessage :: String   -- ^Log message
   } deriving (Eq, Show)
 
@@ -25,10 +29,8 @@ listCommitsFromLogOutput = map fromJust . filter isJust . map (parseOneLineLog) 
                       | otherwise                = Nothing
 
     parseLog         = do 
-      h <- P.munch (isHexDigit)
-      P.skipSpaces
-      m <- P.munch (const True)
-      return (GitCommit h m)
+      [h,d,m] <- P.sepBy (P.munch (/= ',')) (P.char ',')
+      return (GitCommit h (readTime defaultTimeLocale iso8601 d) m)
 
 -- | List all commits for a given file.
 --
@@ -36,6 +38,9 @@ listCommitsFromLogOutput = map fromJust . filter isJust . map (parseOneLineLog) 
 --
 -- >>> gitCommitsForFile "test-repo" "planning.dot" >>= return . map gitHash
 -- ["f826a39","8aff6d5","2d251b4"]
+--
+-- >>> gitCommitsForFile "test-repo" "planning.dot" >>= return . map gitDate
+-- [2013-01-30 18:36:07 UTC,2013-01-30 18:35:04 UTC,2013-01-30 18:34:13 UTC]
 --
 -- >>> gitCommitsForFile "test-repo" "non-existing-file" >>= return . map gitHash    
 -- []
@@ -46,8 +51,8 @@ gitCommitsForFile :: FilePath           -- ^The path to the git repository conta
                      -> FilePath        -- ^The path to the file we want to look at, relative to the git repo
                      -> IO [GitCommit]  -- ^A list of @GitCommit@ objects
 gitCommitsForFile gitrepo filename = 
-  let config     = makeConfig gitrepo Nothing
-      logOneLine = gitExec "log" ["--oneline", filename] []
+  let config = makeConfig gitrepo Nothing
+      logOneLine = gitExec "log" ["--format=format:%h,%ad,%s", "--date=iso", filename] []
   in runGit config logOneLine >>= 
      return . either (return []) (listCommitsFromLogOutput)
 

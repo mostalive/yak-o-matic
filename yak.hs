@@ -43,7 +43,7 @@ data YakStep = YakStep {
 -- |Output cfddata for a given file in a given repo
 --
 -- >>> outputCfdData (YakOptions False (Just "test-repo") (Just "planning.dot")) >>= return . head
--- YakStep {commitId = "f826a39", cfd = [("done",13),("inbox",9),("inprogress",2),("processacceleration",4),("technicaldebt",6)]}
+-- YakStep {commitId = "f826a39", commitDate = "", cfd = [("done",13),("inbox",9),("inprogress",2),("processacceleration",4),("technicaldebt",6)]}
 --
 -- >>> outputCfdData (YakOptions True (Just "test-repo") Nothing)
 -- *** Exception: Invalid command-line arguments
