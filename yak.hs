@@ -42,18 +42,22 @@ data YakStep = YakStep {
   } deriving (Eq, Show, Read)
 
 -- |Output cfddata for a given file in a given repo
+-- Path to planning file is optional and defaults to `planning.dot`:
 --
 -- >>> outputCfdData (YakOptions False (Just "test-repo") (Just "planning.dot")) >>= return . head
 -- YakStep {commitId = "f826a39", commitDate = 2013-01-30 18:36:07 UTC, cfd = [("done",13),("inbox",9),("inprogress",2),("processacceleration",4),("technicaldebt",6)]}
+-- >>> outputCfdData (YakOptions False (Just "test-repo") Nothing) >>= return . head
+-- YakStep {commitId = "f826a39", commitDate = 2013-01-30 18:36:07 UTC, cfd = [("done",13),("inbox",9),("inprogress",2),("processacceleration",4),("technicaldebt",6)]}
 --
--- >>> outputCfdData (YakOptions True (Just "test-repo") Nothing)
+-- >>> outputCfdData (YakOptions True Nothing Nothing)
 -- *** Exception: Invalid command-line arguments
 outputCfdData :: YakOptions    
                  -> IO [YakStep]  -- ^CFD Data extracted from graph file's content
 outputCfdData (YakOptions debug (Just gitrepo) (Just filename)) =
   gitCommitsForFile gitrepo filename >>=
   mapM (buildCfdForCommit debug gitrepo filename)
-outputCfdData _ = error "Invalid command-line arguments"
+outputCfdData y@(YakOptions _ (Just _) Nothing) = outputCfdData $ y { relativeYakFilePath = Just "planning.dot" }
+outputCfdData _                                 =   error "Invalid command-line arguments"
 
 buildCfdForCommit :: Bool ->  FilePath -> FilePath -> GitCommit -> IO YakStep
 buildCfdForCommit debug gitrepo filename commit =                      
