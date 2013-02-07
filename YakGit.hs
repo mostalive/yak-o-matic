@@ -1,8 +1,10 @@
 {-# LANGUAGE PatternGuards #-}
-module YakGit where
+module YakGit(gitCommitsForFile,
+              GitCommit(..),
+              gitContentOfFileAtCommit,
+              GitHash) where
 
 import qualified Text.ParserCombinators.ReadP as P
-import Data.Char(isHexDigit,isSpace)
 import Lib.Git.Type
 import Data.Maybe(fromJust, isJust)
 import System.Locale(defaultTimeLocale)
@@ -13,6 +15,7 @@ parse' s p = [x | (x,_) <- (P.readP_to_S p s) ]
 
 type GitHash = String
 
+iso8601 :: String
 iso8601 = "%Y-%m-%d %T %z"
 
 -- | A single git commit.
