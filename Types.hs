@@ -1,5 +1,7 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 module Types where
 
+import Data.Data(Data,Typeable)
 import Data.Time(UTCTime)
 
 -- | Cumulative flow diagram representation
@@ -13,7 +15,7 @@ data YakStep = YakStep {
   commitId   :: GitHash,  -- ^Identifier for this step
   commitDate :: UTCTime,  -- ^Date of commit
   cfd        :: Cfd       -- ^Count of number of tasks per cluster
-  } deriving (Eq, Show, Read)
+  } deriving (Eq, Show, Read, Typeable, Data)
 
 type Yak = [YakStep]
 

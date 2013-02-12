@@ -1,5 +1,5 @@
 module YakCli(makeOptions, outputCfdData, 
-              YakOptions(..)) where
+              YakOptions(..),emptyOptions) where
 import Data.Maybe(fromJust)
 
 import Types
