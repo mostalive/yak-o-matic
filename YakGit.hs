@@ -1,29 +1,17 @@
 {-# LANGUAGE PatternGuards #-}
 module YakGit(gitCommitsForFile,
-              GitCommit(..),
-              gitContentOfFileAtCommit,
-              GitHash) where
+              gitContentOfFileAtCommit) where
 
 import qualified Text.ParserCombinators.ReadP as P
 import Lib.Git.Type
 import Data.Maybe(fromJust, isJust)
 import System.Locale(defaultTimeLocale)
-import Data.Time(UTCTime,readTime)
+import Data.Time(readTime)
+
+import Types
 
 parse' :: String -> P.ReadP a -> [a]
 parse' s p = [x | (x,_) <- (P.readP_to_S p s) ]
-
-type GitHash = String
-
-iso8601 :: String
-iso8601 = "%Y-%m-%d %T %z"
-
--- | A single git commit.
-data GitCommit = GitCommit { 
-  gitHash       :: GitHash,  -- ^Git unique hash identifier for the commit
-  gitDate       :: UTCTime,
-  gitLogMessage :: String   -- ^Log message
-  } deriving (Eq, Show)
 
 listCommitsFromLogOutput :: String -> [GitCommit] 
 listCommitsFromLogOutput = map fromJust . filter isJust . map (parseOneLineLog) . lines
@@ -33,7 +21,7 @@ listCommitsFromLogOutput = map fromJust . filter isJust . map (parseOneLineLog) 
 
     parseLog         = do 
       [h,d,m] <- P.sepBy (P.munch (/= ',')) (P.char ',')
-      return (GitCommit h (readTime defaultTimeLocale iso8601 d) m)
+      return (GitCommit h (readTime defaultTimeLocale iso8601DateFormat d) m)
 
 -- | List all commits for a given file.
 --
