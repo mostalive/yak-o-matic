@@ -1,0 +1,113 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Yak Cumulative Flow Diagram</title>
+    <link href="layout.css" rel="stylesheet" type="text/css"></link>
+    <!--[if IE]><script language="javascript" type="text/javascript" src="../excanvas.min.js"></script><![endif]-->
+    <script language="javascript" type="text/javascript" src="/flot/jquery.js"></script>
+    <script language="javascript" type="text/javascript" src="/flot/jquery.flot.js"></script>
+    <script language="javascript" type="text/javascript" src="/flot/jquery.flot.stack.js"></script>
+ </head>
+    <body>
+    <h1>Yak Cumulative Flow Diagram</h1>
+
+    <div id="placeholder" style="width:1000px;height:500px;"></div>
+
+    <p id="choices">Show:</p>
+
+<script id="source" language="javascript" type="text/javascript">
+$(function () {
+
+    // helper for returning the weekends in a period
+    function weekendAreas(axes) {
+        var markings = [];
+        var d = new Date(axes.xaxis.min);
+        // go to the first Saturday
+        d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 1) % 7))
+        d.setUTCSeconds(0);
+        d.setUTCMinutes(0);
+        d.setUTCHours(0);
+        var i = d.getTime();
+        do {
+            // when we don't set yaxis, the rectangle automatically
+            // extends to infinity upwards and downwards
+            markings.push({ xaxis: { from: i, to: i + 2 * 24 * 60 * 60 * 1000 } });
+            i += 7 * 24 * 60 * 60 * 1000;
+        } while (i < axes.xaxis.max);
+
+        return markings;
+    }
+
+    $.getJSON("/cfd", function(datasets) {
+
+        // hard-code color indices to prevent them from shifting
+        var i = 0;
+        $.each(datasets, function(key, val) {
+            val.color = i;
+            ++i;
+        });
+        
+        // insert checkboxes 
+        var choiceContainer = $("#choices");
+        var keys = [
+            'inbox',
+            'processacceleration',
+            'technicaldebt',
+            'inprogress',
+            'done'
+        ];
+
+        $.each(keys, function(i, key) {
+            var label = datasets[key].label || key;
+            choiceContainer.append('<br/><input type="checkbox" name="' + key +
+                                   '" checked="checked" id="cbx4' + key + '">' +
+                                   '<label for="id' + key + '">'
+                                    + label + '</label>');
+        });
+        choiceContainer.find("input").click(plotAccordingToChoices);
+    
+        function plotAccordingToChoices() {
+            var data = [];
+
+            $.each(keys.reverse(), function(i, key) {
+                var e = $('#cbx4'+key);
+                if (e.attr('checked'))
+                    data.push(datasets[key]);
+            });
+
+//             $.each(datasets, function(key, set) {
+//                 set.data = $.grep(set.data, function(point) {
+//                     return point[1]; // filter out '0' elements
+//                 });
+//             });
+
+            if (data.length > 0)
+                $.plot($("#placeholder"), data, {
+                    legend: {
+                        position: 'se'
+                    },
+                    series: {
+                        stack: true,
+                        lines: { show: true, fill: false, steps: false }
+                    },
+                    grid: {
+                        markings: weekendAreas
+                    },
+                    yaxis: {
+                        min: 0
+                    },
+                    xaxis: {
+                        mode: "time",
+                        tickDecimals: 0
+                    }
+                });
+        }
+    
+        plotAccordingToChoices();
+    });
+});
+</script>
+
+ </body>
+</html>
