@@ -24,3 +24,7 @@ main = do
       yak <- liftIO $ outputCfdData emptyOptions
       text $ E.decodeUtf8 $ toJsonString yak
     
+    get "/cfd" $ do
+      yak <- liftIO $ outputCfdData emptyOptions
+      text $ E.decodeUtf8 $ toJsonTimeSeries $ toTimeSeries yak
+
