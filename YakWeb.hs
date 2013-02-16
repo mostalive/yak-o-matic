@@ -3,10 +3,13 @@ module YakWeb where
 
 -- needed for tests but hidden
 import System.Locale(defaultTimeLocale)
+import Data.Time.Clock.POSIX(utcTimeToPOSIXSeconds)
 import Data.Time(UTCTime, readTime)
 import Data.ByteString.Lazy.UTF8(toString)
 import Data.Text(pack)
 import Data.List(union)
+import Control.Arrow((***))
+import Data.Fixed(Pico)
 
 import qualified Data.Aeson.Generic as G
 import Data.Aeson(encode,ToJSON(..),(.=),object)
@@ -26,21 +29,23 @@ toJsonString = G.encode
 -- >>> let t2 = (readTime defaultTimeLocale iso8601DateFormat "2013-01-30 18:37:07+0100") :: UTCTime 
 -- 
 -- >>> toString $ toJsonTimeSeries $ toTimeSeries [YakStep {commitId = "a", commitDate = t1, cfd = [("a",1),("b",2)]}, YakStep {commitId = "a", commitDate = t2, cfd = [("a",1),("b",3),("c",1)]}] 
--- "{\"a\":[[\"2013-01-30T17:36:07Z\",1],[\"2013-01-30T17:37:07Z\",1]],\"c\":[[\"2013-01-30T17:36:07Z\",0],[\"2013-01-30T17:37:07Z\",1]],\"b\":[[\"2013-01-30T17:36:07Z\",2],[\"2013-01-30T17:37:07Z\",3]]}"
+-- "{\"a\":[[1359567367000,1],[1359567427000,1]],\"c\":[[1359567367000,0],[1359567427000,1]],\"b\":[[1359567367000,2],[1359567427000,3]]}"
 toJsonTimeSeries :: [(String, TimeSeries)] -> ByteString
-toJsonTimeSeries = encode . toJSON
+toJsonTimeSeries = encode . toJSON . map convertUTCTimeToMs
+
+convertUTCTimeToMs :: (String, TimeSeries) -> (String, [(Integer,Int)])
+convertUTCTimeToMs (s,t) = (s, reverse$ map (round.(1000*).utcTimeToPOSIXSeconds *** id) t)
 
 type TimeSeries = [(UTCTime,Int)]
 
-instance ToJSON [(String,TimeSeries)] where
-     toJSON = object . map (\ x -> (pack $fst x) .= snd x)
+instance ToJSON [(String,[(Integer,Int)])] where
+  toJSON = object . map (\ x -> (pack $fst x) .= snd x)
      
 -- |Format a Yak as a map from phase name to (time, value) series.
 -- 
 toTimeSeries :: Yak -> [(String, TimeSeries)]
 toTimeSeries yak = let phases = map (,[]) $ collectPhases yak
-                       reverseSeries (s,ts) = (s, reverse ts)
-                   in  map reverseSeries $ foldl (flip appendTimeAndValue) phases yak
+                   in  foldl (flip appendTimeAndValue) phases yak
                        
 -- | Append a step's values to the given phases
 -- 
