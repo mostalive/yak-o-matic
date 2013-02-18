@@ -1,15 +1,11 @@
 {-# LANGUAGE TupleSections, NamedFieldPuns, FlexibleInstances #-}
 module YakWeb where
 
--- needed for tests but hidden
-import System.Locale(defaultTimeLocale)
 import Data.Time.Clock.POSIX(utcTimeToPOSIXSeconds)
-import Data.Time(UTCTime, readTime)
-import Data.ByteString.Lazy.UTF8(toString)
+import Data.Time(UTCTime)
 import Data.Text(pack)
 import Data.List(union)
 import Control.Arrow((***))
-import Data.Fixed(Pico)
 
 import qualified Data.Aeson.Generic as G
 import Data.Aeson(encode,ToJSON(..),(.=),object)
