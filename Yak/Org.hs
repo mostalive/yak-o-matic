@@ -24,6 +24,9 @@ import YakGraph
 --
 -- >>> show$ toAscList$ nodeInformation False $ toDotGraph ["** DONE something else"]
 -- "[(\"something else\",(fromList [Just (Str \"DONE\")],[]))]"
+--
+-- >>> show$ toAscList$ nodeInformation False $ toDotGraph ["** DONE something other"]
+-- "[(\"something other\",(fromList [Just (Str \"DONE\")],[]))]"
 toDotGraph :: [String] -> DotGraph String
 toDotGraph s = graphElemsToDot clusteredParams (map nodesFromTODOs s) []
   where
