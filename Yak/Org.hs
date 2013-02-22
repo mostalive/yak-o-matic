@@ -14,6 +14,8 @@ import Data.Map(toAscList)
 import Data.GraphViz.Types(GraphID(..))
 import Data.GraphViz.Attributes.Complete(Attribute(Label), Label(..))
 import Data.Text.Lazy(Text, pack)
+import Data.Char(isSpace)
+import Text.Regex.Posix
 
 import YakGraph
 
@@ -38,8 +40,11 @@ toDotGraph s = graphElemsToDot clusteredParams (map nodesFromTODOs s) []
 
 identifyCluster s = Str $ pack s
 
-clusterByTODOKeyword ("TODO something todo",nl) = C "TODO" $ N ("something todo","")
-clusterByTODOKeyword ("DONE something else",nl) = C "DONE" $ N ("something else","")
-
-nodesFromTODOs "*** TODO something todo" = ("TODO something todo","")
-nodesFromTODOs "** DONE something else" = ("DONE something else","")
+clusterByTODOKeyword (n,nl) = C typ $ N (tail lbl,"")
+  where
+    (typ,lbl) = span (not.isSpace) n
+    
+nodesFromTODOs :: String -> (String,String)
+nodesFromTODOs todo = (todoType ++ " " ++ todoText,"")
+  where
+    [_:todoType:todoText:_] = match (makeRegex "\\*+ (.*) (.*)" :: Regex) todo
