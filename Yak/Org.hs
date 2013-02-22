@@ -9,7 +9,8 @@ import Data.GraphViz(graphElemsToDot,
                      GraphvizParams(..),
                      NodeCluster(..),
                      DotGraph,
-                     nodeInformation)
+                     nodeInformation,
+                     edgeInformation)
 import Data.Map(toAscList)
 import Data.GraphViz.Types(GraphID(..))
 import Data.GraphViz.Attributes.Complete(Attribute(Label), Label(..))
@@ -29,8 +30,11 @@ import YakGraph
 --
 -- >>> show$ toAscList$ nodeInformation False $ toDotGraph ["** DONE something other"]
 -- "[(\"something other\",(fromList [Just (Str \"DONE\")],[]))]"
+--
+-- >>> show$  edgeInformation False $ toDotGraph ["** TODO something other", "*** DONE something else"]
+-- "[DotEdge {fromNode = \"something other\", toNode = \"something else\", edgeAttributes = []}]"
 toDotGraph :: [String] -> DotGraph String
-toDotGraph s = graphElemsToDot clusteredParams (map nodesFromTODOs s) []
+toDotGraph s = graphElemsToDot clusteredParams (map nodesFromTODOs s) (edges s)
   where
     clusteredParams = defaultParams {
       clusterBy = clusterByTODOKeyword,
@@ -38,6 +42,9 @@ toDotGraph s = graphElemsToDot clusteredParams (map nodesFromTODOs s) []
       clusterID = identifyCluster
       }
 
+edges ["** TODO something other", "*** DONE something else"] = [("something other","something else","")]
+edges _ = []
+  
 identifyCluster s = Str $ pack s
 
 clusterByTODOKeyword (n,nl) = C typ $ N (tail lbl,"")
