@@ -1,4 +1,4 @@
 import System.Environment
 import Test.DocTest
 
-main = doctest ["yak"]
+main = doctest ["yak", "YakCli", "Yak/Org"]

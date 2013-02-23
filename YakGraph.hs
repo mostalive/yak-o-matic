@@ -1,6 +1,6 @@
 module YakGraph(parseGraph, listOfClusterNames, listOfNodesPerCluster, countOfNodesPerCluster) where
 import Data.GraphViz.Types
-import Data.GraphViz.Types.Graph
+import Data.GraphViz.Types.Canonical
 import Data.GraphViz.Parsing
 import qualified Data.Map as M
 import Data.List(groupBy)

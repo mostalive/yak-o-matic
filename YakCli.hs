@@ -1,10 +1,13 @@
+
 module YakCli(makeOptions, outputCfdData, 
               YakOptions(..),emptyOptions) where
 import Data.Maybe(fromJust)
+import System.FilePath(takeExtension)
 
 import Types
 import YakGraph
 import YakGit
+import Yak.Org
 
 data YakOptions = YakOptions {
   debugParsing         :: Bool,            -- ^Trace Graphviz parser input & output
@@ -54,14 +57,17 @@ outputCfdData (YakOptions debug (Just gitrepo) (Just filename)) =
   mapM (buildCfdForCommit debug gitrepo filename)
 outputCfdData y@(YakOptions _ (Just _) Nothing) = outputCfdData $ y { relativeYakFilePath = Just defaultYakFile }
 outputCfdData y@(YakOptions _ Nothing  Nothing) = outputCfdData $ y { gitRepository = Just ".", relativeYakFilePath = Just defaultYakFile }
-outputCfdData _                                 =   error "Invalid command-line arguments"
+outputCfdData _                                 = error "Invalid command-line arguments"
 
 buildCfdForCommit :: Bool ->  FilePath -> FilePath -> GitCommit -> IO YakStep
 buildCfdForCommit debug gitrepo filename commit =                      
   (gitContentOfFileAtCommit gitrepo filename . gitHash) commit >>=
   maybeDebug debug >>=
-  return . YakStep (gitHash commit) (gitDate commit) . countOfNodesPerCluster . parseGraph . fromJust
+  return . YakStep (gitHash commit) (gitDate commit) . countOfNodesPerCluster . toGraph (takeExtension filename)
   
+toGraph ".org" = toDotGraph.lines.fromJust
+toGraph _      = parseGraph.fromJust
+
 maybeDebug :: (Show a) => Bool -> a -> IO a
 maybeDebug True s  = putStrLn (show s) >> return s
 maybeDebug False s = return s

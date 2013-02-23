@@ -2,7 +2,7 @@
 Parse org-mode files and generate a dot graph  from the tree
 of TODOs inside this file
 -}
-module Yak.Org where
+module Yak.Org(toDotGraph) where
 
 import Data.GraphViz(graphElemsToDot,
                      defaultParams,
@@ -21,7 +21,7 @@ import Data.Maybe(fromJust)
 
 import YakGraph
 
--- |Generate a graph from a list of strings.
+-- |Generate a graph from a list of headers in org-mode format.
 --
 -- >>> show$ toAscList$ nodeInformation False $ toDotGraph ["*** TODO something todo"]
 -- "[(\"something todo\",(fromList [Just (Str \"TODO\")],[]))]"
@@ -59,15 +59,14 @@ toDotGraph s = graphElemsToDot clusteredParams (map nodesFromTODOs todos) (edges
     clusteredParams = defaultParams {
       clusterBy = clusterByTODOKeyword,
       isDotCluster = const $ True,
-      clusterID = identifyCluster
+      clusterID = Str . pack
       }
 
 todoRegex :: Regex
 todoRegex = makeRegex "(\\*+) +([A-Z]+) +(.*)" 
 
-levelAndLabel n = (length stars, Just txt)
-  where
-    [_:stars:typ:txt:_] = match todoRegex n
+levelAndLabel n = (length stars, Just txt) 
+  where  [_:stars:typ:txt:_] = match todoRegex n
 
 edgesFromTree []           _             acc   = acc
 edgesFromTree (todo:todos) []            acc   = edgesFromTree todos [levelAndLabel todo]      acc
@@ -84,8 +83,6 @@ edgesFromTree (todo:todos) (context:cs)  acc
     atTopLevel  = null cs
     atSameLevel = levelOf currentTodo == levelOf context && (not$ null cs)
     
-identifyCluster s = Str $ pack s
-
 clusterByTODOKeyword (n,nl) = C typ $ N (tail lbl,"")
   where
     (typ,lbl) = span (not.isSpace) n
