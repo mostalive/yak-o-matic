@@ -33,6 +33,9 @@ import YakGraph
 --
 -- >>> show$  edgeInformation False $ toDotGraph ["** TODO something other", "*** DONE something else"]
 -- "[DotEdge {fromNode = \"something other\", toNode = \"something else\", edgeAttributes = []}]"
+--
+-- >>> show$  edgeInformation False $ toDotGraph ["** TODO parent", "*** DONE child"]
+-- "[DotEdge {fromNode = \"parent\", toNode = \"child\", edgeAttributes = []}]"
 toDotGraph :: [String] -> DotGraph String
 toDotGraph s = graphElemsToDot clusteredParams (map nodesFromTODOs s) (edges s)
   where
@@ -42,9 +45,26 @@ toDotGraph s = graphElemsToDot clusteredParams (map nodesFromTODOs s) (edges s)
       clusterID = identifyCluster
       }
 
-edges ["** TODO something other", "*** DONE something else"] = [("something other","something else","")]
-edges _ = []
-  
+todoRegex :: Regex
+todoRegex = makeRegex "(\\*+) +([^ ]*) +(.*)" 
+
+edges :: [String] -> [(String, String, String)]
+edges s = edges' s startNode []
+  where
+    startNode = (0,Nothing)
+    
+edges' []     _          acc = acc
+edges' (e:es) (_,Nothing) acc =   edges' es (level, Just n') acc
+  where
+    [_:stars:typ:txt:_] = match todoRegex e
+    level  = length stars
+    n' = txt
+edges' (e:es) (l,Just n)  acc =   edges' es (level, Just n') ((n, n', "") :acc)
+  where
+    [_:stars:typ:txt:_] = match todoRegex e
+    level  = length stars
+    n' = txt
+    
 identifyCluster s = Str $ pack s
 
 clusterByTODOKeyword (n,nl) = C typ $ N (tail lbl,"")
@@ -54,4 +74,4 @@ clusterByTODOKeyword (n,nl) = C typ $ N (tail lbl,"")
 nodesFromTODOs :: String -> (String,String)
 nodesFromTODOs todo = (todoType ++ " " ++ todoText,"")
   where
-    [_:todoType:todoText:_] = match (makeRegex "\\*+ (.*) (.*)" :: Regex) todo
+    [_:_:todoType:todoText:_] = match todoRegex todo
