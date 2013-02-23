@@ -3,6 +3,7 @@ module YakCli(makeOptions, outputCfdData,
               YakOptions(..),emptyOptions) where
 import Data.Maybe(fromJust)
 import System.FilePath(takeExtension)
+import Data.GraphViz(DotGraph)
 
 import Types
 import YakGraph
@@ -65,6 +66,7 @@ buildCfdForCommit debug gitrepo filename commit =
   maybeDebug debug >>=
   return . YakStep (gitHash commit) (gitDate commit) . countOfNodesPerCluster . toGraph (takeExtension filename)
   
+toGraph :: String -> Maybe String -> DotGraph String
 toGraph ".org" = toDotGraph.lines.fromJust
 toGraph _      = parseGraph.fromJust
 
