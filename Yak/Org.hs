@@ -49,9 +49,13 @@ import YakGraph
 --
 -- >>> show$  edgeInformation False $ toDotGraph ["** TODO parent", "** TODO other parent"]
 -- "[]"
+--
+-- >>> show$ toAscList$ nodeInformation False $ toDotGraph ["* a header", "** TODO a todo"]
+-- "[(\"a todo\",(fromList [Just (Str \"TODO\")],[]))]"
 toDotGraph :: [String] -> DotGraph String
-toDotGraph s = graphElemsToDot clusteredParams (map nodesFromTODOs s) (edges s)
+toDotGraph s = graphElemsToDot clusteredParams (map nodesFromTODOs todos) (edges todos)
   where
+    todos = filter (match todoRegex) s
     clusteredParams = defaultParams {
       clusterBy = clusterByTODOKeyword,
       isDotCluster = const $ True,
@@ -59,7 +63,7 @@ toDotGraph s = graphElemsToDot clusteredParams (map nodesFromTODOs s) (edges s)
       }
 
 todoRegex :: Regex
-todoRegex = makeRegex "(\\*+) +([^ ]*) +(.*)" 
+todoRegex = makeRegex "(\\*+) +([A-Z]+) +(.*)" 
 
 edges :: [String] -> [(String, String, String)]
 edges s = edges' s [] []
@@ -69,14 +73,14 @@ levelAndLabel n = (length stars, Just txt)
     [_:stars:typ:txt:_] = match todoRegex n
 
 edges' []     _       acc    = acc
-edges' (e:es) []      acc    = edges' es [(levelAndLabel e)] acc
+edges' (e:es) []      acc    = edges' es [levelAndLabel e] acc
 edges' (e:es) (c:cs)  acc 
-  | levelOf lle > levelOf c  = edges' es (lle:c:cs)          ((labelOf c, labelOf lle, "") :acc)
+  | levelOf lle > levelOf c  = edges' es (lle:c:cs)        ((labelOf c, labelOf lle, "") :acc)
   | levelOf lle == levelOf c 
-    && null cs               = edges' es (lle:cs)            acc
+    && null cs               = edges' es (lle:cs)          acc
   | levelOf lle == levelOf c 
-    && (not$ null cs)        = edges' es (lle:cs)            ((labelOf (head cs), labelOf lle, ""):acc)
-  | levelOf lle < levelOf c  = edges' es (lle:cs)            acc
+    && (not$ null cs)        = edges' es (lle:cs)          ((labelOf (head cs), labelOf lle, ""):acc)
+  | levelOf lle < levelOf c  = edges' es (lle:cs)          acc
   where
     lle = levelAndLabel e
     labelOf = fromJust . snd
