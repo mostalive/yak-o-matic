@@ -53,7 +53,7 @@ import YakGraph
 -- >>> show$ toAscList$ nodeInformation False $ toDotGraph ["* a header", "** TODO a todo"]
 -- "[(\"a todo\",(fromList [Just (Str \"TODO\")],[]))]"
 toDotGraph :: [String] -> DotGraph String
-toDotGraph s = graphElemsToDot clusteredParams (map nodesFromTODOs todos) (edges todos)
+toDotGraph s = graphElemsToDot clusteredParams (map nodesFromTODOs todos) (edgesFromTree todos [] [])
   where
     todos = filter (match todoRegex) s
     clusteredParams = defaultParams {
@@ -65,29 +65,23 @@ toDotGraph s = graphElemsToDot clusteredParams (map nodesFromTODOs todos) (edges
 todoRegex :: Regex
 todoRegex = makeRegex "(\\*+) +([A-Z]+) +(.*)" 
 
-edges :: [String] -> [(String, String, String)]
-edges s = edges' s [] []
-    
 levelAndLabel n = (length stars, Just txt)
   where
     [_:stars:typ:txt:_] = match todoRegex n
 
-edges' []     _       acc    = acc
-edges' (todo:todos) []      acc    = edges' todos [levelAndLabel todo] acc
-edges' (todo:todos) (context:cs)  acc 
-  | currentTodo `isDeeperThan` context  = edges' todos (currentTodo:context:cs)        ((labelOf context, labelOf currentTodo, "") :acc)
-  | atTopLevel               
-                                   = edges' todos (currentTodo:cs)          acc
-  | atSameLevel
-                                   = edges' todos (currentTodo:cs)          ((labelOf (head cs), labelOf currentTodo, ""):acc)
-  | context `isDeeperThan` currentTodo  
-                                           = edges' todos (currentTodo:cs)          acc
+edgesFromTree []           _             acc   = acc
+edgesFromTree (todo:todos) []            acc   = edgesFromTree todos [levelAndLabel todo]      acc
+edgesFromTree (todo:todos) (context:cs)  acc 
+  | currentTodo `isDeeperThan` context         = edgesFromTree todos (currentTodo:context:cs)  ((labelOf context, labelOf currentTodo, "") :acc)
+  | context `isDeeperThan` currentTodo 
+    || atTopLevel                              = edgesFromTree todos (currentTodo:cs)          acc
+  | atSameLevel                                = edgesFromTree todos (currentTodo:cs)          ((labelOf (head cs), labelOf currentTodo, ""):acc)
   where
     currentTodo = levelAndLabel todo
     labelOf = fromJust . snd
     levelOf = fst
     isDeeperThan a b = levelOf a > levelOf b
-    atTopLevel = levelOf currentTodo == levelOf context && null cs
+    atTopLevel  = null cs
     atSameLevel = levelOf currentTodo == levelOf context && (not$ null cs)
     
 identifyCluster s = Str $ pack s
