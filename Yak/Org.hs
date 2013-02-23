@@ -17,6 +17,7 @@ import Data.GraphViz.Attributes.Complete(Attribute(Label), Label(..))
 import Data.Text.Lazy(Text, pack)
 import Data.Char(isSpace)
 import Text.Regex.Posix
+import Data.Maybe(fromJust)
 
 import YakGraph
 
@@ -36,6 +37,12 @@ import YakGraph
 --
 -- >>> show$  edgeInformation False $ toDotGraph ["** TODO parent", "*** DONE child"]
 -- "[DotEdge {fromNode = \"parent\", toNode = \"child\", edgeAttributes = []}]"
+--
+-- >>> show$  edgeInformation False $ toDotGraph ["** TODO parent", "*** DONE child", "*** TODO other child"]
+-- "[DotEdge {fromNode = \"parent\", toNode = \"other child\", edgeAttributes = []},DotEdge {fromNode = \"parent\", toNode = \"child\", edgeAttributes = []}]"
+--
+-- >>> show$  edgeInformation False $ toDotGraph ["** TODO parent", "*** DONE child", "**** TODO grandchild"]
+-- "[DotEdge {fromNode = \"child\", toNode = \"grandchild\", edgeAttributes = []},DotEdge {fromNode = \"parent\", toNode = \"child\", edgeAttributes = []}]"
 toDotGraph :: [String] -> DotGraph String
 toDotGraph s = graphElemsToDot clusteredParams (map nodesFromTODOs s) (edges s)
   where
@@ -49,21 +56,20 @@ todoRegex :: Regex
 todoRegex = makeRegex "(\\*+) +([^ ]*) +(.*)" 
 
 edges :: [String] -> [(String, String, String)]
-edges s = edges' s startNode []
-  where
-    startNode = (0,Nothing)
+edges s = edges' s [] []
     
-edges' []     _          acc = acc
-edges' (e:es) (_,Nothing) acc =   edges' es (level, Just n') acc
+levelAndLabel n = (length stars, Just txt)
   where
-    [_:stars:typ:txt:_] = match todoRegex e
-    level  = length stars
-    n' = txt
-edges' (e:es) (l,Just n)  acc =   edges' es (level, Just n') ((n, n', "") :acc)
+    [_:stars:typ:txt:_] = match todoRegex n
+
+edges' []     _       acc = acc
+edges' (e:es) []      acc = edges' es [(levelAndLabel e)] acc
+edges' (e:es) (c:cs)  acc 
+  | fst lle == fst c + 1 = edges' es (lle:c:cs)           ((labelOf c, labelOf lle, "") :acc)
+  | fst lle == fst c     = edges' es (lle:cs)             ((labelOf (head cs), labelOf lle, "") :acc)
   where
-    [_:stars:typ:txt:_] = match todoRegex e
-    level  = length stars
-    n' = txt
+    lle = levelAndLabel e
+    labelOf = fromJust . snd
     
 identifyCluster s = Str $ pack s
 
