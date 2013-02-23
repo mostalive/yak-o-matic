@@ -73,18 +73,22 @@ levelAndLabel n = (length stars, Just txt)
     [_:stars:typ:txt:_] = match todoRegex n
 
 edges' []     _       acc    = acc
-edges' (e:es) []      acc    = edges' es [levelAndLabel e] acc
-edges' (e:es) (c:cs)  acc 
-  | levelOf lle > levelOf c  = edges' es (lle:c:cs)        ((labelOf c, labelOf lle, "") :acc)
-  | levelOf lle == levelOf c 
-    && null cs               = edges' es (lle:cs)          acc
-  | levelOf lle == levelOf c 
-    && (not$ null cs)        = edges' es (lle:cs)          ((labelOf (head cs), labelOf lle, ""):acc)
-  | levelOf lle < levelOf c  = edges' es (lle:cs)          acc
+edges' (todo:todos) []      acc    = edges' todos [levelAndLabel todo] acc
+edges' (todo:todos) (context:cs)  acc 
+  | currentTodo `isDeeperThan` context  = edges' todos (currentTodo:context:cs)        ((labelOf context, labelOf currentTodo, "") :acc)
+  | atTopLevel               
+                                   = edges' todos (currentTodo:cs)          acc
+  | atSameLevel
+                                   = edges' todos (currentTodo:cs)          ((labelOf (head cs), labelOf currentTodo, ""):acc)
+  | context `isDeeperThan` currentTodo  
+                                           = edges' todos (currentTodo:cs)          acc
   where
-    lle = levelAndLabel e
+    currentTodo = levelAndLabel todo
     labelOf = fromJust . snd
     levelOf = fst
+    isDeeperThan a b = levelOf a > levelOf b
+    atTopLevel = levelOf currentTodo == levelOf context && null cs
+    atSameLevel = levelOf currentTodo == levelOf context && (not$ null cs)
     
 identifyCluster s = Str $ pack s
 
