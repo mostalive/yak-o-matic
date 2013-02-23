@@ -43,6 +43,12 @@ import YakGraph
 --
 -- >>> show$  edgeInformation False $ toDotGraph ["** TODO parent", "*** DONE child", "**** TODO grandchild"]
 -- "[DotEdge {fromNode = \"child\", toNode = \"grandchild\", edgeAttributes = []},DotEdge {fromNode = \"parent\", toNode = \"child\", edgeAttributes = []}]"
+--
+-- >>> show$  edgeInformation False $ toDotGraph ["** TODO parent", "*** DONE child", "** TODO other parent"]
+-- "[DotEdge {fromNode = \"parent\", toNode = \"child\", edgeAttributes = []}]"
+--
+-- >>> show$  edgeInformation False $ toDotGraph ["** TODO parent", "** TODO other parent"]
+-- "[]"
 toDotGraph :: [String] -> DotGraph String
 toDotGraph s = graphElemsToDot clusteredParams (map nodesFromTODOs s) (edges s)
   where
@@ -62,14 +68,19 @@ levelAndLabel n = (length stars, Just txt)
   where
     [_:stars:typ:txt:_] = match todoRegex n
 
-edges' []     _       acc = acc
-edges' (e:es) []      acc = edges' es [(levelAndLabel e)] acc
+edges' []     _       acc    = acc
+edges' (e:es) []      acc    = edges' es [(levelAndLabel e)] acc
 edges' (e:es) (c:cs)  acc 
-  | fst lle == fst c + 1 = edges' es (lle:c:cs)           ((labelOf c, labelOf lle, "") :acc)
-  | fst lle == fst c     = edges' es (lle:cs)             ((labelOf (head cs), labelOf lle, "") :acc)
+  | levelOf lle > levelOf c  = edges' es (lle:c:cs)          ((labelOf c, labelOf lle, "") :acc)
+  | levelOf lle == levelOf c 
+    && null cs               = edges' es (lle:cs)            acc
+  | levelOf lle == levelOf c 
+    && (not$ null cs)        = edges' es (lle:cs)            ((labelOf (head cs), labelOf lle, ""):acc)
+  | levelOf lle < levelOf c  = edges' es (lle:cs)            acc
   where
     lle = levelAndLabel e
     labelOf = fromJust . snd
+    levelOf = fst
     
 identifyCluster s = Str $ pack s
 
