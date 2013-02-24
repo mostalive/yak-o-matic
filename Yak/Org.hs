@@ -9,17 +9,17 @@ import Data.GraphViz(graphElemsToDot,
                      GraphvizParams(..),
                      NodeCluster(..),
                      DotGraph,
+                     -- for testing 
                      nodeInformation,
                      edgeInformation)
-import Data.Map(toAscList)
 import Data.GraphViz.Types(GraphID(..))
-import Data.GraphViz.Attributes.Complete(Attribute(Label), Label(..))
-import Data.Text.Lazy(Text, pack)
 import Data.Char(isSpace)
 import Text.Regex.Posix
 import Data.Maybe(fromJust)
 
-import YakGraph
+-- for testing
+import Data.Map(toAscList)
+import Data.Text.Lazy(pack)
 
 -- |Generate a graph from a list of headers in org-mode format.
 --
@@ -61,13 +61,18 @@ toDotGraph s = graphElemsToDot clusteredParams (map nodesFromTODOs todos) (edges
       isDotCluster = const $ True,
       clusterID = Str . pack
       }
+    clusterByTODOKeyword (n,_) = C typ $ N (tail lbl,"")
+      where
+        (typ,lbl) = span (not.isSpace) n
 
 todoRegex :: Regex
 todoRegex = makeRegex "(\\*+) +([A-Z]+) +(.*)" 
 
+levelAndLabel :: String -> (Int, Maybe String)
 levelAndLabel n = (length stars, Just txt) 
-  where  [_:stars:typ:txt:_] = match todoRegex n
+  where  [_:stars:_:txt:_] = match todoRegex n
 
+edgesFromTree :: [String] -> [(Int,Maybe String)] -> [(String,String,String)] -> [(String,String,String)]
 edgesFromTree []           _             acc   = acc
 edgesFromTree (todo:todos) []            acc   = edgesFromTree todos [levelAndLabel todo]      acc
 edgesFromTree (todo:todos) (context:cs)  acc 
@@ -82,10 +87,6 @@ edgesFromTree (todo:todos) (context:cs)  acc
     isDeeperThan a b = levelOf a > levelOf b
     atTopLevel  = null cs
     atSameLevel = levelOf currentTodo == levelOf context && (not$ null cs)
-    
-clusterByTODOKeyword (n,nl) = C typ $ N (tail lbl,"")
-  where
-    (typ,lbl) = span (not.isSpace) n
     
 nodesFromTODOs :: String -> (String,String)
 nodesFromTODOs todo = (todoType ++ " " ++ todoText,"")
