@@ -47,6 +47,12 @@ import Data.Text.Lazy(pack)
 -- >>> show$  edgeInformation False $ toDotGraph ["** TODO parent", "*** DONE child", "** TODO other parent"]
 -- "[DotEdge {fromNode = \"parent\", toNode = \"child\", edgeAttributes = []}]"
 --
+-- >>> show$  edgeInformation False $ toDotGraph ["** TODO parent", "*** DONE child", "** TODO other parent", "** TODO third parent"]
+-- "[DotEdge {fromNode = \"parent\", toNode = \"child\", edgeAttributes = []}]"
+--
+-- >>> show$  edgeInformation False $ toDotGraph ["** TODO parent", "*** DONE child", "* TODO other parent","** TODO other child"]
+-- "[DotEdge {fromNode = \"other parent\", toNode = \"other child\", edgeAttributes = []},DotEdge {fromNode = \"parent\", toNode = \"child\", edgeAttributes = []}]"
+--
 -- >>> show$  edgeInformation False $ toDotGraph ["** TODO parent", "** TODO other parent"]
 -- "[]"
 --
@@ -73,13 +79,13 @@ levelAndLabel n = (length stars, Just txt)
   where  [_:stars:_:txt:_] = match todoRegex n
 
 edgesFromTree :: [String] -> [(Int,Maybe String)] -> [(String,String,String)] -> [(String,String,String)]
-edgesFromTree []           _             acc   = acc
-edgesFromTree (todo:todos) []            acc   = edgesFromTree todos [levelAndLabel todo]      acc
-edgesFromTree (todo:todos) (context:cs)  acc 
-  | currentTodo `isDeeperThan` context         = edgesFromTree todos (currentTodo:context:cs)  ((labelOf context, labelOf currentTodo, "") :acc)
-  | context `isDeeperThan` currentTodo 
-    || atTopLevel                              = edgesFromTree todos (currentTodo:cs)          acc
-  | atSameLevel                                = edgesFromTree todos (currentTodo:cs)          ((labelOf (head cs), labelOf currentTodo, ""):acc)
+edgesFromTree []           _             acc = acc
+edgesFromTree (todo:todos) []            acc = edgesFromTree todos [levelAndLabel todo]      acc
+edgesFromTree (todo:todos) (context:cs)  acc
+  | currentTodo `isDeeperThan` context       = edgesFromTree todos (currentTodo:context:cs)      ((labelOf context, labelOf currentTodo, "") :acc)
+  | context `isDeeperThan` currentTodo       = edgesFromTree todos (popContextTo currentTodo cs) acc
+  | atTopLevel                               = edgesFromTree todos (currentTodo:cs)              acc
+  | atSameLevel                              = edgesFromTree todos (currentTodo:cs)              ((labelOf (head cs), labelOf currentTodo, ""):acc)
   where
     currentTodo = levelAndLabel todo
     labelOf = fromJust . snd
@@ -87,7 +93,10 @@ edgesFromTree (todo:todos) (context:cs)  acc
     isDeeperThan a b = levelOf a > levelOf b
     atTopLevel  = null cs
     atSameLevel = levelOf currentTodo == levelOf context && (not$ null cs)
-    
+    popContextTo todo [] = [todo]
+    popContextTo todo (context:cs) | levelOf context == levelOf todo = todo:cs
+                                   | otherwise                       = popContextTo todo cs
+                                                  
 nodesFromTODOs :: String -> (String,String)
 nodesFromTODOs todo = (todoType ++ " " ++ todoText,"")
   where
