@@ -1,6 +1,6 @@
 
 module YakCli(makeOptions, outputCfdData, 
-              YakOptions(..),emptyOptions) where
+              YakOptions(..),emptyOptions,toGraph) where
 import Data.Maybe(fromJust)
 import System.FilePath(takeExtension)
 import Data.GraphViz(DotGraph)
