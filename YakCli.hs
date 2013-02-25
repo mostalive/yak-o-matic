@@ -1,6 +1,6 @@
 
 module YakCli(makeOptions, outputCfdData, 
-              YakOptions(..),emptyOptions,toGraph) where
+              YakOptions,emptyOptions,toGraph) where
 import Data.Maybe(fromJust,fromMaybe)
 import System.FilePath(takeExtension)
 import Data.GraphViz(DotGraph)
@@ -35,38 +35,29 @@ options =
     
 -- |Parse command-line arguments building options for yakgraph execution
 --
--- >>> makeOptions []
+-- >>> makeOptions "" []
 -- YakOptions {debugParsing = False, gitRepository = Just ".", relativeYakFilePath = Just "planning.dot"}
 --
--- >>> makeOptions ["--git-repo=foo","-fbar"]
+-- >>> makeOptions "" ["--git-repo=foo","-fbar"]
 -- YakOptions {debugParsing = False, gitRepository = Just "foo", relativeYakFilePath = Just "bar"}
 --
--- >>> makeOptions ["-gfoo", "-v", "-fbar"]
+-- >>> makeOptions "" ["-gfoo", "-v", "-fbar"]
 -- YakOptions {debugParsing = True, gitRepository = Just "foo", relativeYakFilePath = Just "bar"}
-makeOptions :: [String] -> YakOptions 
-makeOptions arguments = makeOptions' arguments 
-  where
-    (opts,_,[])            = getOpt Permute options arguments
-    makeOptions' arguments = foldl (flip id) emptyOptions opts
+makeOptions :: String -> [String] -> IO YakOptions 
+makeOptions usage arguments = case getOpt Permute options arguments of
+  (opts,_,[]) -> return $ foldl (flip id) emptyOptions opts
+  (_,_,errs)  -> ioError$ userError (concat errs ++ usageInfo usage options)
 
 -- |Output cfddata for a given file in a given repo
 -- Path to planning file is optional and defaults to `planning.dot`:
 --
 -- >>> outputCfdData (YakOptions False (Just "test-repo") (Just "planning.dot")) >>= return . head
 -- YakStep {commitId = "f826a39", commitDate = 2013-01-30 18:36:07 UTC, cfd = [("done",13),("inbox",9),("inprogress",2),("processacceleration",4),("technicaldebt",6)]}
--- >>> outputCfdData (YakOptions False (Just "test-repo") Nothing) >>= return . head
--- YakStep {commitId = "f826a39", commitDate = 2013-01-30 18:36:07 UTC, cfd = [("done",13),("inbox",9),("inprogress",2),("processacceleration",4),("technicaldebt",6)]}
---
--- >>> outputCfdData (YakOptions False Nothing Nothing)
--- [YakStep {commitId = "47e3075", commitDate = 2013-01-29 18:34:58 UTC, cfd = [("done",12),("inbox",8),("inprogress",1),("processacceleration",4),("technicaldebt",8)]}]
 outputCfdData :: YakOptions    
                  -> IO Yak  -- ^CFD Data extracted from graph file's content
 outputCfdData (YakOptions debug (Just gitrepo) (Just filename)) =
   gitCommitsForFile gitrepo filename >>=
   mapM (buildCfdForCommit debug gitrepo filename)
-outputCfdData y@(YakOptions _ (Just _) Nothing) = outputCfdData $ y { relativeYakFilePath = Just defaultYakFile }
-outputCfdData y@(YakOptions _ Nothing  Nothing) = outputCfdData $ y { gitRepository = Just ".", relativeYakFilePath = Just defaultYakFile }
-outputCfdData _                                 = error "Invalid command-line arguments"
 
 buildCfdForCommit :: Bool ->  FilePath -> FilePath -> GitCommit -> IO YakStep
 buildCfdForCommit debug gitrepo filename commit =                      
