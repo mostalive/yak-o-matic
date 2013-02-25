@@ -32,6 +32,7 @@ import Data.Text.Lazy(pack)
 -- >>> show$ toAscList$ nodeInformation False $ toDotGraph ["** DONE something other"]
 -- "[(\"something other\",(fromList [Just (Str \"DONE\")],[]))]"
 --
+-- Linking is done from parent to child with the header's level as a measure of parent-child relationship.
 -- >>> show$  edgeInformation False $ toDotGraph ["** TODO something other", "*** DONE something else"]
 -- "[DotEdge {fromNode = \"something other\", toNode = \"something else\", edgeAttributes = []}]"
 --
@@ -44,6 +45,7 @@ import Data.Text.Lazy(pack)
 -- >>> show$  edgeInformation False $ toDotGraph ["** TODO parent", "*** DONE child", "**** TODO grandchild"]
 -- "[DotEdge {fromNode = \"child\", toNode = \"grandchild\", edgeAttributes = []},DotEdge {fromNode = \"parent\", toNode = \"child\", edgeAttributes = []}]"
 --
+-- Of course, when we change the context of todos, moving up in the headers' level, children relationship should be taken care of correctly.
 -- >>> show$  edgeInformation False $ toDotGraph ["** TODO parent", "*** DONE child", "** TODO other parent"]
 -- "[DotEdge {fromNode = \"parent\", toNode = \"child\", edgeAttributes = []}]"
 --
@@ -53,9 +55,8 @@ import Data.Text.Lazy(pack)
 -- >>> show$  edgeInformation False $ toDotGraph ["** TODO parent", "*** DONE child", "* TODO other parent","** TODO other child"]
 -- "[DotEdge {fromNode = \"other parent\", toNode = \"other child\", edgeAttributes = []},DotEdge {fromNode = \"parent\", toNode = \"child\", edgeAttributes = []}]"
 --
--- >>> show$  edgeInformation False $ toDotGraph ["** TODO parent", "** TODO other parent"]
--- "[]"
---
+-- We don't care about non-todo headers: A todo-header is any header with a level and an upper-case keyword at start. Note that we do not distinguish
+-- true org keyword from plain words in capital.
 -- >>> show$ toAscList$ nodeInformation False $ toDotGraph ["* a header", "** TODO a todo"]
 -- "[(\"a todo\",(fromList [Just (Str \"TODO\")],[]))]"
 toDotGraph :: [String] -> DotGraph String
