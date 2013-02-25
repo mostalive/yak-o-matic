@@ -1,9 +1,10 @@
 
 module YakCli(makeOptions, outputCfdData, 
               YakOptions(..),emptyOptions,toGraph) where
-import Data.Maybe(fromJust)
+import Data.Maybe(fromJust,fromMaybe)
 import System.FilePath(takeExtension)
 import Data.GraphViz(DotGraph)
+import System.Console.GetOpt
 
 import Types
 import YakGraph
@@ -20,26 +21,33 @@ defaultYakFile :: String
 defaultYakFile = "planning.dot"
 
 emptyOptions :: YakOptions
-emptyOptions = YakOptions False Nothing Nothing
+emptyOptions = YakOptions False (Just ".") (Just defaultYakFile)
 
+options :: [OptDescr (YakOptions -> YakOptions)]
+options = 
+  [ Option ['g'] ["git-repo"] 
+    (ReqArg (\ repopath yakoptions -> yakoptions { gitRepository = Just repopath }) "DIR")  "git repository containing yak file"
+  , Option ['f'] ["yak-file"] 
+    (ReqArg (\ yakfile yakoptions -> yakoptions { relativeYakFilePath = Just yakfile }) "FILE") "path of yak file relative to git repository"
+  , Option ['v'] ["verbose"] 
+    (NoArg (\ yakoptions -> yakoptions { debugParsing = True })) "verbose parsing of yak file"
+  ]
+    
 -- |Parse command-line arguments building options for yakgraph execution
 --
 -- >>> makeOptions []
--- YakOptions {debugParsing = False, gitRepository = Nothing, relativeYakFilePath = Nothing}
+-- YakOptions {debugParsing = False, gitRepository = Just ".", relativeYakFilePath = Just "planning.dot"}
 --
--- >>> makeOptions ["foo" ,"bar"]
+-- >>> makeOptions ["--git-repo=foo","-fbar"]
 -- YakOptions {debugParsing = False, gitRepository = Just "foo", relativeYakFilePath = Just "bar"}
 --
--- >>> makeOptions ["foo", "-v", "bar"]
+-- >>> makeOptions ["-gfoo", "-v", "-fbar"]
 -- YakOptions {debugParsing = True, gitRepository = Just "foo", relativeYakFilePath = Just "bar"}
 makeOptions :: [String] -> YakOptions 
-makeOptions options = makeOptions' options emptyOptions
+makeOptions arguments = makeOptions' arguments 
   where
-    makeOptions' ("-v":opts) y                                = makeOptions' opts $ y { debugParsing = True }
-    makeOptions' (opt:opts)  y@(YakOptions _ Nothing Nothing) = makeOptions' opts $ y { gitRepository = Just opt }
-    makeOptions' (opt:opts)  y@(YakOptions _ _       Nothing) = makeOptions' opts $ y { relativeYakFilePath = Just opt }
-    makeOptions' (_:opts)    y@(YakOptions _ _       _)       = makeOptions' opts $ y 
-    makeOptions' []          y                                = y 
+    (opts,_,[])            = getOpt Permute options arguments
+    makeOptions' arguments = foldl (flip id) emptyOptions opts
 
 -- |Output cfddata for a given file in a given repo
 -- Path to planning file is optional and defaults to `planning.dot`:
